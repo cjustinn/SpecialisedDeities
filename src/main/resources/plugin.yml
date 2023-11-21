@@ -1,0 +1,10 @@
+name: SpecialisedDeities
+version: '${project.version}'
+main: io.github.cjustinn.specialiseddeities.SpecialisedDeities
+api-version: '1.20'
+load: STARTUP
+description: Introduce mythology and religion into your server with Specialised Deities.
+commands:
+  deities:
+    description: The primary command for all SpecialisedDeities operations.
+    permission: specialiseddeities.deities

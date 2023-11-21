@@ -1,0 +1,104 @@
+mysql:
+  enabled: false
+  host: localhost
+  port: 3306
+  database: specialised_deities
+  username: vscode
+  password: admin
+limits:
+  # The maximum number of deities that can exist on the server at any given time. Set to -1 to instead allow unlimited, so the maximum number of deities equals the total number of unique server players.
+  maxDeities: -1
+  # The maximum number of followers that any given deity can have at one time. Set to -1 for unlimited.
+  maxFollowers: -1
+  # The maximum amount of collective faith points that can be accumulated. Beyond this amount, excess faith will be lost. Set to -1 for unlimited.
+  maxCollectiveFaith: 10000
+rates:
+  collectiveFaith:
+    # The amount of collective faith rewarded when praying at an altar.
+    altarPrayer: 250
+    # The amount of collective faith rewarded when sacrificing the deity's sacred item.
+    itemSacrifice: 350
+    # The amount of collective faith rewarded when sacrificing the deity's sacred animal.
+    mobSacrifice: 350
+deityCreation:
+  # Set to true to allow deities to be genderless, set false to force deities to use 'God' or 'Goddess'.
+  allowGenderlessDeities: true
+domains:
+  # Divine domain definitions - deities can be created belonging to the following domains and receive their associated rewards/statuses/etc.
+  # The domain property key is used as the domain ID. This is what will be used for commands, and each ID must be unique.
+  sea:
+    # The suffix to use to describe this domain when describing itself, or deities belonging to it. Will be prefixed with 'Domain', 'God', 'Goddess', or 'Deity'.
+    suffix: 'of the Sea'
+    # The in-game GUI item details for this domain's icon.
+    icon:
+      # The custom model data to assign to the icon itemstack - can be used to override the texture with a resource pack.
+      customModelData: 1000
+      # The material that should be used for the icon - must be a valid Material type (https://jd.papermc.io/paper/1.20/org/bukkit/Material.html).
+      type: HEART_OF_THE_SEA
+    # A list of in-game status effects (https://jd.papermc.io/paper/1.20/org/bukkit/potion/PotionEffectType.html) that can be chosen when creating a deity belonging to this domain.
+    allowedStatusEffects:
+      - WATER_BREATHING
+      - NIGHT_VISION
+    # A list of in-game items (https://jd.papermc.io/paper/1.20/org/bukkit/Material.html) which can be chosen when creating a deity belonging to this domain as it's desired sacrifice item.
+    allowedSacrificeItems:
+      - HEART_OF_THE_SEA
+      - PRISMARINE_SHARD
+      - PRISMARINE_CRYSTALS
+      - NAUTILUS_SHELL
+      - SALMON
+      - COD
+      - TROPICAL_FISH
+      - PUFFERFISH
+    # A list of in-game mobs (https://jd.papermc.io/paper/1.20/org/bukkit/entity/EntityType.html) which can be chosen when creating a deity belonging to this domain as it's desired sacrifice mob.
+    allowedSacrificeMobs:
+      - DROWNED
+      - DOLPHIN
+      - GUARDIAN
+      - ELDER_GUARDIAN
+      - GLOW_SQUID
+      - SQUID
+    # The maximum number of deities belonging to this domain which can exist at any given time. Set to -1 to disable.
+    maxDeities: -1
+  skies:
+    suffix: 'of the Sky'
+    icon:
+      customModelData: 1000
+      type: FEATHER
+    allowedStatusEffects:
+      - SLOW_FALLING
+      - LEVITATION
+      - JUMP
+    allowedSacrificeItems:
+      - FEATHER
+      - PHANTOM_MEMBRANE
+      - RABBIT_FOOT
+    allowedSacrificeMobs:
+      - PHANTOM
+      - CHICKEN
+      - PARROT
+      - RABBIT
+    maxDeities: -1
+  death:
+    suffix: 'of Death'
+    icon:
+      customModelData: 1000
+      type: BONE
+    allowedStatusEffects:
+      - FIRE_RESISTANCE
+      - NIGHT_VISION
+      - FAST_DIGGING
+    allowedSacrificeItems:
+      - BONE
+      - DIAMOND
+      - NETHERITE_INGOT
+      - NETHERITE_SCRAP
+      - ROTTEN_FLESH
+      - SPIDER_EYE
+    allowedSacrificeMobs:
+      - BLAZE
+      - PIGLIN
+      - ZOMBIFIED_PIGLIN
+      - HOGLIN
+      - GHAST
+      - MAGMA_CUBE
+    maxDeities: -1
