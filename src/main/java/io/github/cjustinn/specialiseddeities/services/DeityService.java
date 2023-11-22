@@ -32,5 +32,9 @@ public class DeityService {
         return deities.values().stream().filter((deity) -> deity.domainId == domainId).collect(Collectors.toList()).size();
     }
 
+    public static int getDeityFollowerCount(final int deityId) {
+        return users.values().stream().filter((user) -> user.patronId == deityId).collect(Collectors.toList()).size();
+    }
+
     // User Functions
 }

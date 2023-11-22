@@ -1,6 +1,9 @@
 package io.github.cjustinn.specialiseddeities.models.SQL;
 
+import io.github.cjustinn.specialiseddeities.services.LoggingService;
 import org.bukkit.configuration.ConfigurationSection;
+
+import java.util.logging.Level;
 
 public class MySQLCredentials {
     public final String host;

@@ -2,9 +2,9 @@ mysql:
   enabled: false
   host: localhost
   port: 3306
-  database: specialised_deities
-  username: vscode
-  password: admin
+  database: ''
+  user: ''
+  password: ''
 limits:
   # The maximum number of deities that can exist on the server at any given time. Set to -1 to instead allow unlimited, so the maximum number of deities equals the total number of unique server players.
   maxDeities: -1

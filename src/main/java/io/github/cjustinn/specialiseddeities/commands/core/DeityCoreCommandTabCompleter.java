@@ -23,13 +23,14 @@ public class DeityCoreCommandTabCompleter implements TabCompleter {
         if (args.length == 1) {
             options.addAll(
                     Arrays.stream(new String[] {
-                            "select",
+                            "pledge",
                             "create",
                             "abandon",
-                            "status"
+                            "status",
+                            "altar"
                     }).collect(Collectors.toList()).stream().filter((cmd) -> cmd.startsWith(args[0])).collect(Collectors.toList())
             );
-        } else if (args.length == 2 && args[0] == "select") {
+        } else if (args.length == 2 && args[0] == "pledge") {
             options.addAll(
                     DeityService.deities.values().stream().map((deity) -> deity.name).filter((deityName) -> deityName.startsWith(args[1])).collect(Collectors.toList())
             );
