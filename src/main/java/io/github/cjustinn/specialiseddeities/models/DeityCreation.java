@@ -124,80 +124,211 @@ public class DeityCreation {
     public boolean createDeity(@Nullable Inventory menuInventory) {
         boolean success = false;
 
-        @Nullable ResultSet createResult = DatabaseService.RunQuery(DatabaseQuery.CreateDeity, new DatabaseQueryValue[] {
-                new DatabaseQueryValue(1, this.name, DatabaseQueryValueType.String),
-                new DatabaseQueryValue(2, this.suffixOverride, DatabaseQueryValueType.String),
-                new DatabaseQueryValue(3, this.domain, DatabaseQueryValueType.String),
-                new DatabaseQueryValue(4, this.gender.genderId, DatabaseQueryValueType.Integer),
-                new DatabaseQueryValue(5, this.sacrificeItem, DatabaseQueryValueType.String),
-                new DatabaseQueryValue(6, this.sacrificeMob, DatabaseQueryValueType.String),
-                new DatabaseQueryValue(7, this.statusEffect, DatabaseQueryValueType.String),
-                new DatabaseQueryValue(8, this.isProtected, DatabaseQueryValueType.Boolean),
-                new DatabaseQueryValue(9, this.creatorId, DatabaseQueryValueType.String),
-                new DatabaseQueryValue(10, true, DatabaseQueryValueType.Boolean),
-                new DatabaseQueryValue(11, this.isGod, DatabaseQueryValueType.Boolean)
-        });
+        if (DatabaseService.enableMySql) {
+            // Call the stored procedure when saving via MySQL.
+            @Nullable ResultSet createResult = DatabaseService.RunQuery(DatabaseQuery.CreateDeity, new DatabaseQueryValue[] {
+                    new DatabaseQueryValue(1, this.name, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(2, this.suffixOverride, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(3, this.domain, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(4, this.gender.genderId, DatabaseQueryValueType.Integer),
+                    new DatabaseQueryValue(5, this.sacrificeItem, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(6, this.sacrificeMob, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(7, this.statusEffect, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(8, this.isProtected, DatabaseQueryValueType.Boolean),
+                    new DatabaseQueryValue(9, this.creatorId, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(10, true, DatabaseQueryValueType.Boolean),
+                    new DatabaseQueryValue(11, this.isGod, DatabaseQueryValueType.Boolean)
+            });
 
-        if (createResult != null) {
-            try {
-                while (createResult.next()) {
-                    Deity createdDeity = new Deity(
-                            createResult.getInt(1),
-                            createResult.getString(2),
-                            createResult.getString(3),
-                            createResult.getString(4),
-                            DeityGender.getGenderById(createResult.getInt(5)),
-                            Material.getMaterial(createResult.getString(6)),
-                            EntityType.fromName(createResult.getString(7)),
-                            PotionEffectType.getByName(createResult.getString(8)),
-                            this.creatorId,
-                            createResult.getBoolean(9),
-                            createResult.getBoolean(10),
-                            createResult.getDate(11),
-                            createResult.getString(12),
-                            createResult.getInt(13)
-                    );
+            if (createResult != null) {
+                try {
+                    while (createResult.next()) {
+                        Deity createdDeity = new Deity(
+                                createResult.getInt(1),
+                                createResult.getString(2),
+                                createResult.getString(3),
+                                createResult.getString(4),
+                                DeityGender.getGenderById(createResult.getInt(5)),
+                                Material.getMaterial(createResult.getString(6)),
+                                EntityType.fromName(createResult.getString(7)),
+                                PotionEffectType.getByName(createResult.getString(8)),
+                                this.creatorId,
+                                createResult.getBoolean(9),
+                                createResult.getBoolean(10),
+                                createResult.getDate(11),
+                                createResult.getString(12),
+                                createResult.getInt(13)
+                        );
 
-                    DeityService.deities.put(createdDeity.id, createdDeity);
+                        DeityService.deities.put(createdDeity.id, createdDeity);
 
-                    LoggingService.writeLog(Level.INFO, String.format("Deity %s has been created.", createdDeity.name));
+                        LoggingService.writeLog(Level.INFO, String.format("Deity %s has been created.", createdDeity.name));
 
-                    if (this.creatorId != "server") {
-                        @Nullable ResultSet userResults = DatabaseService.RunQuery(DatabaseQuery.SelectUserById, new DatabaseQueryValue[] {
+                        if (this.creatorId != "server") {
+                            @Nullable ResultSet userResults = DatabaseService.RunQuery(DatabaseQuery.SelectUserById, new DatabaseQueryValue[] {
+                                    new DatabaseQueryValue(1, this.creatorId, DatabaseQueryValueType.String)
+                            });
+
+                            if (userResults != null) {
+                                while (userResults.next()) {
+                                    DeityUser createdDeityUser = new DeityUser(
+                                            userResults.getString(1),
+                                            userResults.getInt(2),
+                                            userResults.getBoolean(3),
+                                            userResults.getBoolean(4),
+                                            userResults.getBoolean(5),
+                                            userResults.getDate(6)
+                                    );
+
+                                    DeityService.users.put(this.creatorId, createdDeityUser);
+
+                                    Bukkit.getPlayer(UUID.fromString(createdDeityUser.uuid)).sendMessage(
+                                            Component.text(
+                                                    String.format("The new deity %s is now your patron deity!", createdDeity.name),
+                                                    NamedTextColor.GREEN
+                                            )
+                                    );
+                                }
+                            }
+                        }
+
+                        success = true;
+                    }
+                } catch (SQLException e) {
+                    LoggingService.writeLog(Level.SEVERE, String.format("An error occurred while creating a new deity: %s", e.getMessage()));
+                }
+            }
+        } else {
+            // SQLite being used, make the calls manually since Stored Procedures are not supported.
+            /*
+            * (1) Insert the new deity into the sd_deities DB table.
+            * (2) Insert the new user into the sd_users DB table, referencing the ID of the latest-added deity, IF the creatorId <> "server".
+            * (3) Select the latest-added deity and add it to the DeityService.deities map.
+            * (4) Select the user entry and add it to the DeityService.users map, if the creatorId <> "server".
+            * */
+            if (DatabaseService.RunUpdate(DatabaseQuery.InsertDeity, new DatabaseQueryValue[] {
+                    new DatabaseQueryValue(1, this.name, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(2, this.suffixOverride, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(3, this.domain, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(4, this.gender.genderId, DatabaseQueryValueType.Integer),
+                    new DatabaseQueryValue(5, this.sacrificeItem, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(6, this.sacrificeMob, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(7, this.statusEffect, DatabaseQueryValueType.String),
+                    new DatabaseQueryValue(8, this.isProtected, DatabaseQueryValueType.Boolean),
+                    new DatabaseQueryValue(9, this.creatorId, DatabaseQueryValueType.String)
+            })) {
+                LoggingService.writeLog(Level.INFO, String.format("Deity %s has been created.", this.name));
+
+                // If the creator is NOT the server, add them to the DeityServer users map.
+                if (!this.creatorId.equals("server")) {
+                    if (DatabaseService.RunUpdate(DatabaseQuery.CreateDeityInsertUser, new DatabaseQueryValue[] {
+                            new DatabaseQueryValue(1, this.creatorId, DatabaseQueryValueType.String),
+                            new DatabaseQueryValue(2, true, DatabaseQueryValueType.Boolean),
+                            new DatabaseQueryValue(3, this.isGod, DatabaseQueryValueType.Boolean)
+                    })) {
+                        @Nullable ResultSet userFetchResults = DatabaseService.RunQuery(DatabaseQuery.SelectUserById, new DatabaseQueryValue[] {
                                 new DatabaseQueryValue(1, this.creatorId, DatabaseQueryValueType.String)
                         });
 
-                        if (userResults != null) {
-                            while (userResults.next()) {
-                                DeityUser createdDeityUser = new DeityUser(
-                                        userResults.getString(1),
-                                        userResults.getInt(2),
-                                        userResults.getBoolean(3),
-                                        userResults.getBoolean(4),
-                                        userResults.getBoolean(5),
-                                        userResults.getDate(6)
-                                );
-
-                                DeityService.users.put(this.creatorId, createdDeityUser);
-
-                                Bukkit.getPlayer(UUID.fromString(createdDeityUser.uuid)).sendMessage(
+                        if (userFetchResults != null) {
+                            try {
+                                while (userFetchResults.next()) {
+                                    DeityService.users.put(this.creatorId, new DeityUser(
+                                            userFetchResults.getString(1),
+                                            userFetchResults.getInt(2),
+                                            userFetchResults.getBoolean(3),
+                                            userFetchResults.getBoolean(4),
+                                            userFetchResults.getBoolean(5),
+                                            userFetchResults.getDate(6)
+                                    ));
+                                }
+                            } catch (SQLException e) {
+                                LoggingService.writeLog(Level.SEVERE, String.format("Failed to fetch newly registered user pledge for user %s.", this.creatorId));
+                                Bukkit.getPlayer(UUID.fromString(this.creatorId)).sendMessage(
                                         Component.text(
-                                                String.format("The new deity %s is now your patron deity!", createdDeity.name),
-                                                NamedTextColor.GREEN
+                                                String.format("We were unable to fetch your pledge, please contact a server administrator!"),
+                                                NamedTextColor.RED
                                         )
                                 );
                             }
+                        } else {
+                            LoggingService.writeLog(Level.SEVERE, String.format("Failed to fetch newly registered user pledge for user %s.", this.creatorId));
+                            Bukkit.getPlayer(UUID.fromString(this.creatorId)).sendMessage(
+                                    Component.text(
+                                            String.format("We were unable to fetch your pledge, please contact a server administrator!"),
+                                            NamedTextColor.RED
+                                    )
+                            );
+                        }
+                    } else {
+                        LoggingService.writeLog(Level.SEVERE, String.format("Failed to associate player %s with their newly created deity.", this.creatorId));
+                        Bukkit.getPlayer(UUID.fromString(this.creatorId)).sendMessage(
+                                Component.text(
+                                        String.format("Failed to pledge you to your newly created deity. Please contact a server administrator, or manually pledge yourself to the deity with the deities select command."),
+                                        NamedTextColor.RED
+                                )
+                        );
+                    }
+                }
+
+                // Fetch the newly created deity object and store it in the DeityService deities map.
+                @Nullable ResultSet deityFetchResult = DatabaseService.RunQuery(DatabaseQuery.SelectLatestDeity);
+                if (deityFetchResult != null) {
+                    try {
+                        while (deityFetchResult.next()) {
+                            DeityService.deities.put(
+                                    deityFetchResult.getInt(1),
+                                    new Deity(
+                                        deityFetchResult.getInt(1),
+                                            deityFetchResult.getString(2),
+                                            deityFetchResult.getString(3),
+                                            deityFetchResult.getString(4),
+                                            DeityGender.getGenderById(deityFetchResult.getInt(5)),
+                                            Material.getMaterial(deityFetchResult.getString(6)),
+                                            EntityType.fromName(deityFetchResult.getString(7)),
+                                            PotionEffectType.getByName(deityFetchResult.getString(8)),
+                                            deityFetchResult.getString(9),
+                                            deityFetchResult.getBoolean(10),
+                                            deityFetchResult.getBoolean(11),
+                                            deityFetchResult.getDate(12),
+                                            deityFetchResult.getString(13),
+                                            deityFetchResult.getInt(14)
+                                    )
+                            );
+                        }
+
+                        if (!this.creatorId.equals("server")) {
+                            Bukkit.getPlayer(UUID.fromString(this.creatorId)).sendMessage(
+                                    Component.text(
+                                            String.format("The new deity %s is now your patron deity!", this.name),
+                                            NamedTextColor.GREEN
+                                    )
+                            );
+                        }
+
+                        success = true;
+                    } catch (SQLException e) {
+                        LoggingService.writeLog(Level.SEVERE, String.format("Failed to register newly created deity (%s) with the server.", this.name));
+                        if (!this.creatorId.equals("server")) {
+                            Bukkit.getPlayer(UUID.fromString(this.creatorId)).sendMessage(
+                                    Component.text(
+                                            String.format("Failed to register your deity with the server. Please contact a server administrator."),
+                                            NamedTextColor.RED
+                                    )
+                            );
                         }
                     }
-
-                    if (menuInventory != null) {
-                        menuInventory.close();
+                } else {
+                    LoggingService.writeLog(Level.SEVERE, String.format("Failed to register newly created deity (%s) with the server.", this.name));
+                    if (!this.creatorId.equals("server")) {
+                        Bukkit.getPlayer(UUID.fromString(this.creatorId)).sendMessage(
+                                Component.text(
+                                        String.format("Failed to register your deity with the server. Please contact a server administrator."),
+                                        NamedTextColor.RED
+                                )
+                        );
                     }
-
-                    success = true;
                 }
-            } catch (SQLException e) {
-                LoggingService.writeLog(Level.SEVERE, String.format("An error occurred while creating a new deity: %s", e.getMessage()));
             }
         }
 

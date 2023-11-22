@@ -53,7 +53,13 @@ public class DatabaseService {
         try {
             PreparedStatement statement = connection.prepareStatement(enableMySql ? query.MySqlQuery : query.SQLiteQuery);
             return statement.executeQuery();
-        } catch (SQLException err) {
+        } catch (SQLException e) {
+            LoggingService.writeLog(Level.SEVERE, String.format(
+                    "Error occurred running query [%s]: %s",
+                    query.name(),
+                    e.getMessage()
+            ));
+
             return null;
         }
     }
@@ -83,8 +89,68 @@ public class DatabaseService {
             }
 
             return statement.executeQuery();
-        } catch (SQLException err) {
+        } catch (SQLException e) {
+            LoggingService.writeLog(Level.SEVERE, String.format(
+                    "Error occurred running query [%s]: %s",
+                    query.name(),
+                    e.getMessage()
+            ));
+
             return null;
+        }
+    }
+
+    public static boolean RunUpdate(DatabaseQuery query) {
+        try {
+            PreparedStatement statement = connection.prepareStatement(enableMySql ? query.MySqlQuery : query.SQLiteQuery);
+            statement.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            LoggingService.writeLog(Level.SEVERE, String.format(
+                    "Error occurred running query [%s]: %s",
+                    query.name(),
+                    e.getMessage()
+            ));
+
+            return false;
+        }
+    }
+
+    public static boolean RunUpdate(DatabaseQuery query, DatabaseQueryValue[] values) {
+        try {
+            PreparedStatement statement = connection.prepareStatement(enableMySql ? query.MySqlQuery : query.SQLiteQuery);
+
+            for (DatabaseQueryValue queryValue : values) {
+                switch (queryValue.type) {
+                    case Integer:
+                        statement.setInt(queryValue.position, (int) queryValue.value);
+                        break;
+                    case Double:
+                        statement.setDouble(queryValue.position, (double) queryValue.value);
+                        break;
+                    case Boolean:
+                        statement.setBoolean(queryValue.position, (boolean) queryValue.value);
+                        break;
+                    case Date:
+                        statement.setDate(queryValue.position, (Date) queryValue.value);
+                        break;
+                    default:
+                        statement.setString(queryValue.position, (String) queryValue.value);
+                        break;
+                }
+            }
+
+            statement.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            LoggingService.writeLog(Level.SEVERE, String.format(
+                    "Error occurred running query [%s]: %s",
+                    query.name(),
+                    e.getMessage()
+            ));
+
+            return false;
         }
     }
 }
