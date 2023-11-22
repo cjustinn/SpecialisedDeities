@@ -41,6 +41,10 @@ public enum DatabaseQuery {
             "INSERT INTO sd_deities (name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, protected, creator) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
             "INSERT INTO sd_deities (name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, protected, creator) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
     ),
+    InsertUser(
+            "INSERT INTO sd_users (uuid, patron, is_leader, is_god) VALUES (?, ?, ?, ?);",
+            "INSERT INTO sd_users (uuid, patron, is_leader, is_god) VALUES (?, ?, ?, ?);"
+    ),
     CreateDeityInsertUser(
             "INSERT INTO sd_users (uuid, patron, is_leader, is_god) VALUES (?, (SELECT id FROM sd_deities WHERE id = LAST_INSERT_ID() LIMIT 1), ?, ?);",
             "INSERT INTO sd_users (uuid, patron, is_leader, is_god) VALUES (?, (SELECT id FROM sd_deities WHERE id = last_insert_rowid() LIMIT 1), ?, ?);"

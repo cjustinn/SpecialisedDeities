@@ -5,6 +5,7 @@ import io.github.cjustinn.specialiseddeities.enums.DeityGender;
 import io.github.cjustinn.specialiseddeities.enums.InventoryMenuType;
 import io.github.cjustinn.specialiseddeities.models.DeityCreation;
 import io.github.cjustinn.specialiseddeities.models.DeityDomain;
+import io.github.cjustinn.specialiseddeities.models.DeityUser;
 import io.github.cjustinn.specialiseddeities.models.custominventory.InventoryMenuHolder;
 import io.github.cjustinn.specialiseddeities.models.custominventory.InventoryMenuLog;
 import io.github.cjustinn.specialiseddeities.repositories.PluginSettingsRepository;
@@ -270,7 +271,35 @@ public class InventoryMenuListener implements Listener {
             }
             // If the inventory menu is of select type, handle it appropriately.
             else if (((InventoryMenuHolder) inventoryHolder).getMenuType() == InventoryMenuType.SelectDeity && itemClicked != null) {
+                if (itemClicked.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(SpecialisedDeities.plugin, "DeityID"))) {
+                    final int selectedDeityId = itemClicked.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(SpecialisedDeities.plugin, "DeityID"), PersistentDataType.INTEGER);
 
+                    if (DeityService.deities.containsKey(selectedDeityId) && DeityService.deities.get(selectedDeityId).isActive) {
+                        if (DeityUser.pledgeUser(event.getWhoClicked().getUniqueId().toString(), selectedDeityId)) {
+                            inventoryView.getTopInventory().close();
+                            event.getWhoClicked().sendMessage(
+                                    Component.text(
+                                            String.format("You are now pledged to %s, %s %s.", DeityService.deities.get(selectedDeityId).name, DeityService.deities.get(selectedDeityId).gender.title, DeityService.deities.get(selectedDeityId).suffixOverride != null ? DeityService.deities.get(selectedDeityId).suffixOverride : DeityService.deities.get(selectedDeityId).getDomain().suffix),
+                                            NamedTextColor.GREEN
+                                    )
+                            );
+                        } else {
+                            event.getWhoClicked().sendMessage(
+                                    Component.text(
+                                            "Something went wrong while registering your selection, please try again!",
+                                            NamedTextColor.RED
+                                    )
+                            );
+                        }
+                    } else {
+                        event.getWhoClicked().sendMessage(
+                                Component.text(
+                                        "Could not find the deity you selected. Please try again!",
+                                        NamedTextColor.RED
+                                )
+                        );
+                    }
+                }
             }
         }
     }

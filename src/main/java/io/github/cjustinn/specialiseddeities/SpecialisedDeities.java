@@ -124,7 +124,6 @@ public final class SpecialisedDeities extends JavaPlugin {
 
             for (DatabaseQuery query : installOrder) {
                 if (initialisedTables && ((DatabaseService.enableMySql ? query.MySqlQuery : query.SQLiteQuery).length() > 0)) {
-                    LoggingService.writeLog(Level.INFO, String.format("Initialising Table: %s", query.name()));
                     try {
                         final PreparedStatement statement = DatabaseService.connection.prepareStatement(
                                 DatabaseService.enableMySql
