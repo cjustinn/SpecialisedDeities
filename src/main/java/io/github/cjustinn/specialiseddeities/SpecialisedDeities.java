@@ -123,7 +123,8 @@ public final class SpecialisedDeities extends JavaPlugin {
             initialisedTables = true;
 
             for (DatabaseQuery query : installOrder) {
-                if (initialisedTables) {
+                if (initialisedTables && ((DatabaseService.enableMySql ? query.MySqlQuery : query.SQLiteQuery).length() > 0)) {
+                    LoggingService.writeLog(Level.INFO, String.format("Initialising Table: %s", query.name()));
                     try {
                         final PreparedStatement statement = DatabaseService.connection.prepareStatement(
                                 DatabaseService.enableMySql
@@ -136,6 +137,7 @@ public final class SpecialisedDeities extends JavaPlugin {
 
                         initialisedTables = initialisedTables && true;
                     } catch (SQLException e) {
+                        LoggingService.writeLog(Level.WARNING, String.format("Error initialising table: %s", e.getMessage()));
                         initialisedTables = false;
                     }
                 }

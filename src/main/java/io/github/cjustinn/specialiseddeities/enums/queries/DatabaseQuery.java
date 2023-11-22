@@ -15,7 +15,7 @@ public enum DatabaseQuery {
     ),
     CreateDeityCreationSP(
             "CREATE PROCEDURE IF NOT EXISTS sd_create_deity (IN deity_name VARCHAR(150), IN deity_title VARCHAR(250), IN deity_domain TEXT, IN deity_gender INT, IN deity_item TEXT, IN deity_mob TEXT, IN deity_status_effect TEXT, IN deity_protected BIT, IN deity_creator TEXT, IN user_is_deity_leader BIT, IN user_is_god BIT) BEGIN INSERT INTO sd_deities (name,  title_override,  domain,  gender,  sacrifice_item,  sacrifice_mob,  status_effect,  protected,  creator) VALUES (deity_name, deity_title, deity_domain, deity_gender, deity_item, deity_mob, deity_status_effect, deity_protected, deity_creator); IF (deity_creator <> 'server') THEN INSERT INTO sd_users (uuid,  patron,  is_leader,  is_god) VALUES (deity_creator,  (SELECT id FROM sd_deities WHERE id = LAST_INSERT_ID() LIMIT 1),  user_is_deity_leader,  user_is_god); END IF; SELECT id, name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, creator, active, protected, created, (SELECT uuid FROM sd_users WHERE patron = d.id AND is_leader = 1 LIMIT 1) as leader, COALESCE((SELECT SUM(amount) FROM sd_cpoint_transactions WHERE deity = d.id GROUP BY deity),  0) as collective_points FROM sd_deities d WHERE id = LAST_INSERT_ID(); END;",
-            "CREATE PROCEDURE IF NOT EXISTS sd_create_deity (IN deity_name VARCHAR(150), IN deity_title VARCHAR(250), IN deity_domain TEXT, IN deity_gender INT, IN deity_item TEXT, IN deity_mob TEXT, IN deity_status_effect TEXT, IN deity_protected BIT, IN deity_creator TEXT, IN user_is_deity_leader BIT, IN user_is_god BIT) BEGIN INSERT INTO sd_deities (name,  title_override,  domain,  gender,  sacrifice_item,  sacrifice_mob,  status_effect,  protected,  creator) VALUES (deity_name, deity_title, deity_domain, deity_gender, deity_item, deity_mob, deity_status_effect, deity_protected, deity_creator); IF (deity_creator <> 'server') THEN INSERT INTO sd_users (uuid,  patron,  is_leader,  is_god) VALUES (deity_creator,  (SELECT id FROM sd_deities WHERE id = LAST_INSERT_ID() LIMIT 1),  user_is_deity_leader,  user_is_god); END IF; SELECT id, name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, creator, active, protected, created, (SELECT uuid FROM sd_users WHERE patron = d.id AND is_leader = 1 LIMIT 1) as leader, COALESCE((SELECT SUM(amount) FROM sd_cpoint_transactions WHERE deity = d.id GROUP BY deity),  0) as collective_points FROM sd_deities d WHERE id = LAST_INSERT_ID(); END;"
+            ""
     ),
     SelectAllUsers(
             "SELECT uuid, patron, is_leader, is_demigod, is_god, pledged FROM sd_users;",
@@ -29,9 +29,21 @@ public enum DatabaseQuery {
             "SELECT id, name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, creator, active, protected, created, (SELECT uuid FROM sd_users WHERE patron = d.id AND is_leader = 1 LIMIT 1) as leader, COALESCE((SELECT SUM(amount) FROM sd_cpoint_transactions WHERE deity = d.id GROUP BY deity), 0) as collective_points FROM sd_deities d WHERE active = 1;",
             "SELECT id, name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, creator, active, protected, created, (SELECT uuid FROM sd_users WHERE patron = d.id AND is_leader = 1 LIMIT 1) as leader, COALESCE((SELECT SUM(amount) FROM sd_cpoint_transactions WHERE deity = d.id GROUP BY deity), 0) as collective_points FROM sd_deities d WHERE active = 1;"
     ),
+    SelectLatestDeity(
+            "SELECT id, name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, creator, active, protected, created, (SELECT uuid FROM sd_users WHERE patron = d.id AND is_leader = 1 LIMIT 1) as leader, COALESCE((SELECT SUM(amount) FROM sd_cpoint_transactions WHERE deity = d.id GROUP BY deity), 0) as collective_points FROM sd_deities d WHERE id = LAST_INSERT_ID();",
+            "SELECT id, name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, creator, active, protected, created, (SELECT uuid FROM sd_users WHERE patron = d.id AND is_leader = 1 LIMIT 1) as leader, COALESCE((SELECT SUM(amount) FROM sd_cpoint_transactions WHERE deity = d.id GROUP BY deity), 0) as collective_points FROM sd_deities d WHERE id = last_insert_rowid();"
+    ),
     CreateDeity(
             "CALL sd_create_deity(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
-            "CALL sd_create_deity(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+            ""
+    ),
+    InsertDeity(
+            "INSERT INTO sd_deities (name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, protected, creator) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+            "INSERT INTO sd_deities (name, title_override, domain, gender, sacrifice_item, sacrifice_mob, status_effect, protected, creator) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
+    ),
+    CreateDeityInsertUser(
+            "INSERT INTO sd_users (uuid, patron, is_leader, is_god) VALUES (?, (SELECT id FROM sd_deities WHERE id = LAST_INSERT_ID() LIMIT 1), ?, ?);",
+            "INSERT INTO sd_users (uuid, patron, is_leader, is_god) VALUES (?, (SELECT id FROM sd_deities WHERE id = last_insert_rowid() LIMIT 1), ?, ?);"
     );
 
     public final String MySqlQuery;

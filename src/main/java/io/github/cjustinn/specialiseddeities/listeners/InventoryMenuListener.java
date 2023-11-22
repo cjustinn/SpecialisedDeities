@@ -254,7 +254,9 @@ public class InventoryMenuListener implements Listener {
 
                             DeityCreation creationProcess = DeityCreatorService.activeCreations.get(userId);
                             final boolean deityCreated = creationProcess.createDeity(inventoryView.getTopInventory());
-                            if (!deityCreated) {
+                            if (deityCreated) {
+                                inventoryView.getTopInventory().close();
+                            } else {
                                 event.getWhoClicked().sendMessage(
                                         Component.text(
                                                 String.format("An error occurred while creating your deity. Please contact a server administrator for additional details and try again."),
