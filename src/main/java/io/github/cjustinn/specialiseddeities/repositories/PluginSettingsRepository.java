@@ -10,7 +10,9 @@ public class PluginSettingsRepository {
     public static int collectiveAltarReward = 250;
     public static int collectiveItemReward = 350;
     public static int collectiveMobReward = 350;
+    public static int collectiveAbandonmentPenalty = 250;
 
-    // "Deity Creation" settings.
+    // "Deity Management" settings.
     public static boolean allowGenderlessDeities = true;
+    public static boolean removeCreatedAltarsOnAbandon = true;
 }

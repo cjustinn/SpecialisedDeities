@@ -27,13 +27,24 @@ public class DeityCoreCommandTabCompleter implements TabCompleter {
                             "create",
                             "abandon",
                             "status",
-                            "altar"
+                            "altar",
+                            "admin"
                     }).collect(Collectors.toList()).stream().filter((cmd) -> cmd.startsWith(args[0])).collect(Collectors.toList())
             );
-        } else if (args.length == 2 && args[0] == "pledge") {
+        } else if (args.length == 2 && args[0].toLowerCase().equals("pledge")) {
             options.addAll(
                     DeityService.deities.values().stream().map((deity) -> deity.name).filter((deityName) -> deityName.startsWith(args[1])).collect(Collectors.toList())
             );
+        } else if (args.length >= 2 && args[0].toLowerCase().equals("admin")) {
+            // Admin commands
+            // Root command
+            if (args.length == 2) {
+                options.addAll(
+                        Arrays.stream(new String[] {
+                                "reload"
+                        }).collect(Collectors.toList()).stream().filter((cmd) -> cmd.startsWith(args[1])).collect(Collectors.toList())
+                );
+            }
         }
 
         return options;
