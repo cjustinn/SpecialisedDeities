@@ -25,6 +25,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -61,6 +62,10 @@ public final class SpecialisedDeities extends JavaPlugin {
     }
 
     public boolean reloadConfiguration() {
+        DeityService.users = new HashMap<String, DeityUser>();
+        DeityService.deities = new HashMap<Integer, Deity>();
+        DeityService.domains = new ArrayList<DeityDomain>();
+
         return this.initialiseConfiguration() && this.loadDatabaseData(true);
     }
 
@@ -77,8 +82,10 @@ public final class SpecialisedDeities extends JavaPlugin {
         PluginSettingsRepository.collectiveAltarReward = config.getInt("rates.collectiveFaith.altarPrayer", 250);
         PluginSettingsRepository.collectiveItemReward = config.getInt("rates.collectiveFaith.itemSacrifice", 350);
         PluginSettingsRepository.collectiveMobReward = config.getInt("rates.collectiveFaith.mobSacrifice", 350);
+        PluginSettingsRepository.collectiveAbandonmentPenalty = config.getInt("rates.collectiveFaith.deityAbandonmentCollectivePenalty", 250);
 
-        PluginSettingsRepository.allowGenderlessDeities = config.getBoolean("deityCreation.allowGenderlessDeities", true);
+        PluginSettingsRepository.allowGenderlessDeities = config.getBoolean("deityManagement.allowGenderlessDeities", true);
+        PluginSettingsRepository.removeCreatedAltarsOnAbandon = config.getBoolean("deityManagement.removeCreatedAltarsOnAbandon", true);
 
         ConfigurationSection mysqlSettingsSection = config.getConfigurationSection("mysql");
         DatabaseService.enableMySql = mysqlSettingsSection.getBoolean("enabled", false);
@@ -117,7 +124,9 @@ public final class SpecialisedDeities extends JavaPlugin {
                     DatabaseQuery.CreateDeityTable,
                     DatabaseQuery.CreateUserTable,
                     DatabaseQuery.CreateCollectiveTransactionsTable,
-                    DatabaseQuery.CreateDeityCreationSP
+                    DatabaseQuery.CreateDeityAltarTable,
+                    DatabaseQuery.CreateDeityCreationSP,
+                    DatabaseQuery.CreateDeityDeactivationSP
             };
 
             initialisedTables = true;

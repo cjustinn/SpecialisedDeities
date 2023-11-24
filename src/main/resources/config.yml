@@ -20,9 +20,13 @@ rates:
     itemSacrifice: 350
     # The amount of collective faith rewarded when sacrificing the deity's sacred animal.
     mobSacrifice: 350
-deityCreation:
+    # The amount of collective faith deducted when a player abandons their deity. Set to zero to disable.
+    deityAbandonmentCollectivePenalty: 250
+deityManagement:
   # Set to true to allow deities to be genderless, set false to force deities to use 'God' or 'Goddess'.
   allowGenderlessDeities: true
+  # Set to true to remove all altars created by the player when they abandon their deity.
+  removeCreatedAltarsOnAbandon: true
 domains:
   # Divine domain definitions - deities can be created belonging to the following domains and receive their associated rewards/statuses/etc.
   # The domain property key is used as the domain ID. This is what will be used for commands, and each ID must be unique.
