@@ -9,6 +9,7 @@ import io.github.cjustinn.specialiseddeities.repositories.PluginSettingsReposito
 import io.github.cjustinn.specialiseddeities.services.DatabaseService;
 import io.github.cjustinn.specialiseddeities.services.DeityService;
 import io.github.cjustinn.specialiseddeities.services.LoggingService;
+import org.bukkit.Location;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -74,6 +75,21 @@ public class DeityUser {
             // If the config says to remove altars created by the abandoning player, remove all altars with the current user uuid as the creator value.
             if (PluginSettingsRepository.removeCreatedAltarsOnAbandon) {
                 // This needs to be implemented when the altars SQL is available.
+                if (!DatabaseService.RunUpdate(DatabaseQuery.DeleteDeityAltars, new DatabaseQueryValue[] {
+                        new DatabaseQueryValue(1, this.patronId, DatabaseQueryValueType.Integer)
+                })) {
+                    LoggingService.writeLog(Level.WARNING, String.format(
+                            "Unable to remove altars belonging to deity: %s (%d).",
+                            this.getDeity().name,
+                            this.patronId
+                    ));
+                } else {
+                    for (Map.Entry<Location, DeityAltar> entry : DeityService.altars.entrySet()) {
+                        if (entry.getValue().deityId == this.patronId) {
+                            DeityService.altars.remove(entry.getKey());
+                        }
+                    }
+                }
             }
 
             // If the config says to apply a faith point penalty to the abandoned deity, add the transaction.

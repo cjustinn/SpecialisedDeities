@@ -3,9 +3,11 @@ package io.github.cjustinn.specialiseddeities.services;
 import io.github.cjustinn.specialiseddeities.enums.queries.DatabaseQuery;
 import io.github.cjustinn.specialiseddeities.enums.queries.DatabaseQueryValueType;
 import io.github.cjustinn.specialiseddeities.models.Deity;
+import io.github.cjustinn.specialiseddeities.models.DeityAltar;
 import io.github.cjustinn.specialiseddeities.models.DeityDomain;
 import io.github.cjustinn.specialiseddeities.models.DeityUser;
 import io.github.cjustinn.specialiseddeities.models.SQL.DatabaseQueryValue;
+import org.bukkit.Location;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -15,6 +17,7 @@ public class DeityService {
     public static List<DeityDomain> domains = new ArrayList<>();
     public static Map<Integer, Deity> deities = new HashMap<Integer, Deity>();
     public static Map<String, DeityUser> users = new HashMap<String, DeityUser>();
+    public static Map<Location, DeityAltar> altars = new HashMap<Location, DeityAltar>();
 
     // Domain Functions
     public static @Nullable DeityDomain getDomainById(final String id) {
