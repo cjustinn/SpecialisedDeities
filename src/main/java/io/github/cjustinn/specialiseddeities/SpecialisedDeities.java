@@ -6,6 +6,7 @@ import io.github.cjustinn.specialiseddeities.enums.DeityGender;
 import io.github.cjustinn.specialiseddeities.enums.queries.DatabaseQuery;
 import io.github.cjustinn.specialiseddeities.listeners.InventoryMenuListener;
 import io.github.cjustinn.specialiseddeities.models.Deity;
+import io.github.cjustinn.specialiseddeities.models.DeityAltar;
 import io.github.cjustinn.specialiseddeities.models.DeityDomain;
 import io.github.cjustinn.specialiseddeities.models.DeityUser;
 import io.github.cjustinn.specialiseddeities.models.SQL.MySQLCredentials;
@@ -13,6 +14,8 @@ import io.github.cjustinn.specialiseddeities.repositories.PluginSettingsReposito
 import io.github.cjustinn.specialiseddeities.services.DatabaseService;
 import io.github.cjustinn.specialiseddeities.services.DeityService;
 import io.github.cjustinn.specialiseddeities.services.LoggingService;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -166,7 +169,7 @@ public final class SpecialisedDeities extends JavaPlugin {
     }
 
     private boolean loadDatabaseData(boolean tablesInitialised) {
-        boolean deitiesLoaded = false, usersLoaded = false;
+        boolean deitiesLoaded = false, usersLoaded = false, altarsLoaded = false;
 
         if (tablesInitialised) {
             // Load deities
@@ -234,11 +237,45 @@ public final class SpecialisedDeities extends JavaPlugin {
             } else {
                 LoggingService.writeLog(Level.SEVERE, "Failed to fetch user data.");
             }
+
+            // Load altars.
+            ResultSet altarResults = DatabaseService.RunQuery(DatabaseQuery.SelectAllDeityAltars);
+
+            if (altarResults != null) {
+                try {
+                    while (altarResults.next()) {
+                        Location altarLocation = new Location(
+                                Bukkit.getWorld(altarResults.getString(1)),
+                                altarResults.getDouble(2),
+                                altarResults.getDouble(3),
+                                altarResults.getDouble(4)
+                        );
+
+                        DeityService.altars.put(
+                                altarLocation,
+                                new DeityAltar(
+                                        altarLocation,
+                                        altarResults.getInt(5),
+                                        altarResults.getString(6),
+                                        altarResults.getDate(7)
+                                )
+                        );
+                    }
+
+                    altarsLoaded = true;
+                    LoggingService.writeLog(Level.INFO, String.format("Loaded %d deity altars.", DeityService.users.size()));
+                } catch (SQLException err) {
+                    altarsLoaded = false;
+                    LoggingService.writeLog(Level.SEVERE, "Failed to fetch deity altar data.");
+                }
+            } else {
+                LoggingService.writeLog(Level.SEVERE, "Failed to fetch user data.");
+            }
         } else {
             LoggingService.writeLog(Level.SEVERE, "Could not fetch user data; tables not initialised.");
         }
 
-        return tablesInitialised && deitiesLoaded && usersLoaded;
+        return tablesInitialised && deitiesLoaded && usersLoaded && altarsLoaded;
     }
 
     private boolean registerCommands() {

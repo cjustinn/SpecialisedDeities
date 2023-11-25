@@ -6,7 +6,7 @@
 
     <groupId>io.github.cjustinn</groupId>
     <artifactId>SpecialisedDeities</artifactId>
-    <version>0.1.0-ALPHA</version>
+    <version>0.2.0-ALPHA</version>
     <packaging>jar</packaging>
 
     <name>SpecialisedDeities</name>
