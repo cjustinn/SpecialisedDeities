@@ -4,6 +4,7 @@ import io.github.cjustinn.specialiseddeities.commands.core.DeityCoreCommandExecu
 import io.github.cjustinn.specialiseddeities.commands.core.DeityCoreCommandTabCompleter;
 import io.github.cjustinn.specialiseddeities.enums.DeityGender;
 import io.github.cjustinn.specialiseddeities.enums.queries.DatabaseQuery;
+import io.github.cjustinn.specialiseddeities.listeners.AltarManagementListener;
 import io.github.cjustinn.specialiseddeities.listeners.InventoryMenuListener;
 import io.github.cjustinn.specialiseddeities.models.Deity;
 import io.github.cjustinn.specialiseddeities.models.DeityAltar;
@@ -89,6 +90,7 @@ public final class SpecialisedDeities extends JavaPlugin {
 
         PluginSettingsRepository.allowGenderlessDeities = config.getBoolean("deityManagement.allowGenderlessDeities", true);
         PluginSettingsRepository.removeCreatedAltarsOnAbandon = config.getBoolean("deityManagement.removeCreatedAltarsOnAbandon", true);
+        PluginSettingsRepository.leaderOnlyAltarManagement = config.getBoolean("deityManagement.leaderOnlyAltarManagement", false);
 
         ConfigurationSection mysqlSettingsSection = config.getConfigurationSection("mysql");
         DatabaseService.enableMySql = mysqlSettingsSection.getBoolean("enabled", false);
@@ -287,6 +289,7 @@ public final class SpecialisedDeities extends JavaPlugin {
 
         // Listeners
         getServer().getPluginManager().registerEvents(new InventoryMenuListener(), this);
+        getServer().getPluginManager().registerEvents(new AltarManagementListener(), this);
 
         return true;
     }

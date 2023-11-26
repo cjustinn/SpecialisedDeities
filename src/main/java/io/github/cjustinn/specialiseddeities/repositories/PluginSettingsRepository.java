@@ -15,4 +15,5 @@ public class PluginSettingsRepository {
     // "Deity Management" settings.
     public static boolean allowGenderlessDeities = true;
     public static boolean removeCreatedAltarsOnAbandon = true;
+    public static boolean leaderOnlyAltarManagement = false;
 }

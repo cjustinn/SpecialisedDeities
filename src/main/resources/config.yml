@@ -27,6 +27,8 @@ deityManagement:
   allowGenderlessDeities: true
   # Set to true to remove all altars created by the player when they abandon their deity.
   removeCreatedAltarsOnAbandon: true
+  # Set to true to restrict altar creation/removal to deity follower leaders only. Set to false to allow all deity followers to create altars.
+  leaderOnlyAltarManagement: false
 domains:
   # Divine domain definitions - deities can be created belonging to the following domains and receive their associated rewards/statuses/etc.
   # The domain property key is used as the domain ID. This is what will be used for commands, and each ID must be unique.

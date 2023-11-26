@@ -1,8 +1,10 @@
 package io.github.cjustinn.specialiseddeities.commands.core;
 
 import io.github.cjustinn.specialiseddeities.SpecialisedDeities;
+import io.github.cjustinn.specialiseddeities.enums.DeityAltarManagementType;
 import io.github.cjustinn.specialiseddeities.enums.InventoryMenuType;
 import io.github.cjustinn.specialiseddeities.models.Deity;
+import io.github.cjustinn.specialiseddeities.models.DeityAltarManagementInteraction;
 import io.github.cjustinn.specialiseddeities.models.DeityDomain;
 import io.github.cjustinn.specialiseddeities.models.DeityUser;
 import io.github.cjustinn.specialiseddeities.repositories.PluginSettingsRepository;
@@ -12,6 +14,7 @@ import io.github.cjustinn.specialiseddeities.services.InventoryMenuService;
 import io.github.cjustinn.specialiseddeities.services.LoggingService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -37,7 +40,7 @@ public class DeityCoreCommandExecutor implements CommandExecutor {
                     put("abandon", "specialiseddeities.pledge");
                     put("status", "specialiseddeities.pledge");
                     put("create", "specialiseddeities.create");
-                    put("altar", "specialiseddeities.create");
+                    put("altar", "specialiseddeities.pledge");
                 }};
 
                 // Core user commands
@@ -229,6 +232,136 @@ public class DeityCoreCommandExecutor implements CommandExecutor {
                                 player.sendMessage(
                                         Component.text(
                                                 "Something went wrong while abandoning your pledge, please try again!",
+                                                NamedTextColor.RED
+                                        )
+                                );
+                            }
+                        }
+                    }
+                    // Altar Command
+                    else if (args[0].toLowerCase().equals("altar")) {
+                        if (args.length < 2) {
+                            player.sendMessage(
+                                    Component.text(
+                                            "You have provided too few arguments to this command!",
+                                            NamedTextColor.RED
+                                    )
+                            );
+                        } else if (args.length > 2) {
+                            player.sendMessage(
+                                    Component.text(
+                                            "You have provided too many arguments to this command!",
+                                            NamedTextColor.RED
+                                    )
+                            );
+                        } else {
+                            // Handle sub-commands.
+                            if (args[1].toLowerCase().equals("create")) {
+                                // Create altar command
+                                if (!DeityService.users.containsKey(player.getUniqueId().toString())) {
+                                    player.sendMessage(
+                                            Component.text(
+                                                    "You are not pledged to a deity.",
+                                                    NamedTextColor.RED
+                                            )
+                                    );
+                                } else if (PluginSettingsRepository.leaderOnlyAltarManagement && !DeityService.users.get(player.getUniqueId().toString()).isLeader) {
+                                    player.sendMessage(
+                                            Component.text(
+                                                    "You must be your deities leading follower to create an altar.",
+                                                    NamedTextColor.RED
+                                            )
+                                    );
+                                } else {
+                                    // Begin the altar creation flow.
+                                    DeityAltarManagementInteraction.activeInteractions.put(
+                                            player.getUniqueId().toString(),
+                                            new DeityAltarManagementInteraction(
+                                                    DeityAltarManagementType.Create,
+                                                    player.getUniqueId().toString()
+                                            )
+                                    );
+
+                                    player.sendMessage(
+                                            Component.text(
+                                                    String.format(
+                                                            "You are now creating an altar to %s. Right-click the desired altar block.",
+                                                            DeityService.users.get(player.getUniqueId().toString()).getDeity().name
+                                                    ),
+                                                    NamedTextColor.GREEN
+                                            )
+                                    );
+
+                                    Bukkit.getScheduler().runTaskLater(SpecialisedDeities.plugin, () -> {
+                                        if (
+                                                DeityAltarManagementInteraction.activeInteractions.containsKey(player.getUniqueId().toString())
+                                                && DeityAltarManagementInteraction.activeInteractions.get(player.getUniqueId().toString()).altarLocation == null
+                                        ) {
+                                            DeityAltarManagementInteraction.activeInteractions.remove(player.getUniqueId().toString());
+                                            player.sendMessage(
+                                                    Component.text(
+                                                            "Altar creation has been cancelled!",
+                                                            NamedTextColor.RED
+                                                    )
+                                            );
+                                        }
+                                    }, 20L * 30);
+                                }
+                            } else if (args[1].toLowerCase().equals("remove")) {
+                                // Remove command
+                                if (!DeityService.users.containsKey(player.getUniqueId().toString())) {
+                                    player.sendMessage(
+                                            Component.text(
+                                                    "You are not pledged to a deity.",
+                                                    NamedTextColor.RED
+                                            )
+                                    );
+                                } else if (PluginSettingsRepository.leaderOnlyAltarManagement && !DeityService.users.get(player.getUniqueId().toString()).isLeader) {
+                                    player.sendMessage(
+                                            Component.text(
+                                                    "You must be your deities leading follower to remove an altar.",
+                                                    NamedTextColor.RED
+                                            )
+                                    );
+                                } else {
+                                    // Begin the altar removal flow.
+                                    DeityAltarManagementInteraction.activeInteractions.put(
+                                            player.getUniqueId().toString(),
+                                            new DeityAltarManagementInteraction(
+                                                    DeityAltarManagementType.Remove,
+                                                    player.getUniqueId().toString()
+                                            )
+                                    );
+
+                                    player.sendMessage(
+                                            Component.text(
+                                                    String.format(
+                                                            "You are now removing an altar to %s. Right-click the altar block to remove.",
+                                                            DeityService.users.get(player.getUniqueId().toString()).getDeity().name
+                                                    ),
+                                                    NamedTextColor.GREEN
+                                            )
+                                    );
+
+                                    Bukkit.getScheduler().runTaskLater(SpecialisedDeities.plugin, () -> {
+                                        if (
+                                                DeityAltarManagementInteraction.activeInteractions.containsKey(player.getUniqueId().toString())
+                                                        && DeityAltarManagementInteraction.activeInteractions.get(player.getUniqueId().toString()).altarLocation == null
+                                        ) {
+                                            DeityAltarManagementInteraction.activeInteractions.remove(player.getUniqueId().toString());
+                                            player.sendMessage(
+                                                    Component.text(
+                                                            "Altar removal has been cancelled!",
+                                                            NamedTextColor.RED
+                                                    )
+                                            );
+                                        }
+                                    }, 20L * 30);
+                                }
+                            } else {
+                                player.sendMessage(
+                                        Component.text(
+                                                "That command does not exist!",
                                                 NamedTextColor.RED
                                         )
                                 );
